@@ -19,4 +19,6 @@ RUN mkdir /app
 
 COPY --from=builder /app/replicant /app/
 
+EXPOSE "8000:8000"
+
 CMD ["/app/replicant"]
