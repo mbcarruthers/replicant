@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+
+  replicant:
+    build:
+      context: ./../replicant
+      dockerfile: ./../replicant/replicant.Dockerfile
+    restart:
+      always
+    ports:
+      - "8000:8000"
+    deploy:
+      mode: replicated
+      replicas: 1
