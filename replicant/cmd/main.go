@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"io"
 	"log"
 	"net/http"
 )
@@ -22,16 +23,34 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
+	base := r.Group("/")
+	api := base.Group("/api")
+	v1 := api.Group("v1")
 
-	api := r.Group("/api/v1")
-
-	api.GET("/", func(c *gin.Context) {
+	v1.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "this is working",
 		})
 		return
 	})
-	
+
+	v1.GET("/health", func(c *gin.Context) {
+		if data, err := io.ReadAll(c.Request.Body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"err":     err.Error(),
+				"message": "first error",
+			})
+			return
+		} else if _, err = c.Writer.Write(data); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   err.Error(),
+				"message": "second error",
+			})
+			return
+		}
+		return
+	})
+
 	if err := r.Run(port); err != nil {
 		log.Fatalf(err.Error())
 	}

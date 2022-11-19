@@ -7,8 +7,6 @@ COPY . /app
 
 WORKDIR /app
 
-#RUN go mod download
-
 RUN CGO_ENABLED=0 go build -o replicant ./cmd/
 
 RUN chmod +x /app/replicant
@@ -18,8 +16,6 @@ RUN chmod +x /app/replicant
 FROM alpine:latest
 
 RUN mkdir /app
-
-#COPY --from=builder *.go ./
 
 COPY --from=builder /app/replicant /app/
 
