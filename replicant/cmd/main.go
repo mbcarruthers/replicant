@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -8,8 +9,9 @@ import (
 	"net/http"
 )
 
-const (
-	port = ":8000"
+var (
+	__port = 8000
+	port   = fmt.Sprintf(":%d", __port)
 )
 
 func main() {
