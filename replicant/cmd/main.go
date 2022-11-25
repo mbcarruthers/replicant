@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 var (
@@ -38,7 +43,34 @@ func main() {
 		}
 	})
 
-	if err := r.Run(port); err != nil {
-		log.Fatalf(err.Error())
+	server := &http.Server{
+		Addr:    port,
+		Handler: r,
 	}
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server listen err:%s\n", err.Error())
+		}
+	}()
+	quit := make(chan os.Signal)
+	// Kill - (no param) - default send syscan11.SIGTERM
+	// Kill - 2 = syscall.SIGINT
+	// Kill - 9 = syscall.SIGKILL cannot catch with select statement
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	<-quit
+
+	log.Printf("Shutdown server\n")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server Shutdown:%s \n", err.Error())
+	}
+
+	// catching ctx.Done() after 5 second timeout
+	select {
+	case <-ctx.Done():
+		log.Printf("Timed out...\n")
+	}
+	log.Println("Server exiting...")
 }
