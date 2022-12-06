@@ -97,20 +97,20 @@ var (
 	__port       = 8000
 	port         = fmt.Sprintf(":%d", __port)
 	database_url = "postgresql://root@cockroach:26257/defaultdb?sslmode=disable"
-	crdb         *DataStore // make visible outside of init
-
+	cockroachDB  *DataStore // make visible outside of init
+	err          error
 )
 
 func init() {
-	if crdb, err := NewDataStore(database_url); err != nil {
+	if cockroachDB, err = NewDataStore(database_url); err != nil {
 		log.Fatalf("Could not connect to database: %s \n", err.Error())
 	} else {
 		log.Printf("Database connected \n")
-		if err = crdb.CreateTestDatabase(context.Background()); err != nil {
+		if err = cockroachDB.CreateTestDatabase(context.Background()); err != nil {
 			log.Printf("Error creating database: %s \n", err.Error())
-		} else if err = crdb.InsertTestElement(context.Background()); err != nil {
+		} else if err = cockroachDB.InsertTestElement(context.Background()); err != nil {
 			log.Printf("Error inserting test elements: %s \n", err.Error())
-		} else if names, err := crdb.QueryTestElements(context.Background()); err != nil {
+		} else if names, err := cockroachDB.QueryTestElements(context.Background()); err != nil {
 			log.Printf("Error querying test elements: %s \n", err.Error())
 		} else {
 			for _, name := range names {
@@ -153,14 +153,11 @@ func main() {
 		}
 	}()
 	quit := make(chan os.Signal)
-	// Kill - (no param) - default send syscan11.SIGTERM
-	// Kill - 2 = syscall.SIGINT
-	// Kill - 9 = syscall.SIGKILL cannot catch with select statement
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
 
-	log.Printf("Shutdown server\n")
+	log.Printf("Server shutting down")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	if err := server.Shutdown(ctx); err != nil {
@@ -172,5 +169,5 @@ func main() {
 	case <-ctx.Done():
 		log.Printf("Server exiting...\n")
 	}
-	log.Println("Time out, Server shutdown...")
+	log.Println("Server Shutdown")
 }

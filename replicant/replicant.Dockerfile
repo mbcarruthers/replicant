@@ -11,7 +11,7 @@ RUN CGO_ENABLED=0 go build -o replicant ./cmd/
 
 RUN chmod +x /app/replicant
 
-# create a small image and copy the executable
+# copy executable to new container
 
 FROM alpine:latest
 

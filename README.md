@@ -1,14 +1,12 @@
 ## Replicant
 
-A boilerplate for containerized go/gin projects.
+A boilerplate for containerized go/gin projects with an insercure cockroachdb.
 
+The Go container creates a 'test database' at startup to show it connects successfully by creating a trivial database+table, inserting an element, and querying it. 
 
-Todo: 
-- optional: If possible, find a way to run the makefile within the docker container for building. Not necessary but when
-  make is installed in replcant.Dockerfile (`RUN apk add make`) my makefile does not recognize the Alpine operating
-  system. Therefore, in the Makefile's OS rules Alpine will have to be added as an operating system.
+The Go container is started by a multistage Dockerfile and will not run until the healthcheck for the database container shows that it is ready for connection. The multistage
+dockerfile builds the image inside of an alpine container with access to the libaries for compilation and moves it to an base alpine image for hosting.
 
-- Attach an Envoy container(s) for everything from load-balancing, HTTPs proxy, HTTP2 proxy, TLS , whatever.
-  Just get it involved in some way and go from there. i.e - make a dir in the container dir container the envoy Dockerfile
- as well an the envoy.yaml file and add it to the docker-compose.yaml
-- Attach cockroachdb to the server and have it 'parametized' to connect to that service in the docker-compose.yaml
+The gin server comes along with a graceful shutdown. 
+
+The cockroach docker container contains no volume for persistence and thus is completely removed when 'docker-compose down' is ran.

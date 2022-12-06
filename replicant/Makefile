@@ -39,8 +39,8 @@ project := replicant
 
 replicant: $@help ## Keep this to display help when you just type 'make' in root dir
 
-build_server: ## build the golang http server
-	CGO_ENABLED=0 go build -o ${BIN_DIR}/$(project) ./cmd/
+build_service: ## build the golang http server
+	go build -o ${BIN_DIR}/$(project) ./cmd/
 
 
 about: ## Display info related to the build
