@@ -1,6 +1,6 @@
 ## Replicant
 
-A boilerplate for containerized go/gin projects with an insercure cockroachdb.
+A boilerplate for containerized go/gin projects with a single-node cockroachDB connection
 
 The Go container creates a 'test database' at startup to show it connects successfully by creating a trivial database+table, inserting an element, and querying it. 
 
