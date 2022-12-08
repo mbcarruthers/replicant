@@ -76,20 +76,20 @@ func (d *DataStore) InsertTestElement(ctx context.Context) error {
 	}
 }
 
-func (d *DataStore) QueryTestElements(ctx context.Context) ([]string, error) {
+func (d *DataStore) QueryTestElement(ctx context.Context) (string, error) {
 	queryString := fmt.Sprintf("SELECT name FROM test_database.test_table WHERE name = $1")
 	if rows, err := d.Conn.Query(ctx, queryString, "Decker"); err != nil {
-		return nil, err
+		return "", err
 	} else {
 		var names []string
 		for rows.Next() {
 			var name string
 			if err = rows.Scan(&name); err != nil {
-				return nil, err
+				return "", err
 			}
 			names = append(names, name)
 		}
-		return names, nil
+		return names[0], nil
 	}
 }
 
@@ -110,12 +110,10 @@ func init() {
 			log.Printf("Error creating database: %s \n", err.Error())
 		} else if err = cockroachDB.InsertTestElement(context.Background()); err != nil {
 			log.Printf("Error inserting test elements: %s \n", err.Error())
-		} else if names, err := cockroachDB.QueryTestElements(context.Background()); err != nil {
+		} else if name, err := cockroachDB.QueryTestElement(context.Background()); err != nil {
 			log.Printf("Error querying test elements: %s \n", err.Error())
 		} else {
-			for _, name := range names {
-				fmt.Println(name)
-			}
+			log.Println(name)
 		}
 	}
 }
@@ -140,6 +138,14 @@ func main() {
 		} else if _, err = c.Writer.Write(data); err != nil {
 			c.JSON(http.StatusInternalServerError, err)
 			return
+		}
+	})
+	api.GET("/data", func(c *gin.Context) {
+		res, err := cockroachDB.QueryTestElement(context.Background())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+		} else {
+			c.JSON(http.StatusOK, res)
 		}
 	})
 
