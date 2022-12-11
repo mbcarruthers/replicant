@@ -25,6 +25,4 @@ services:
     depends_on:
       crdb:
         condition: service_healthy
-    deploy:
-      mode: replicated
-      replicas: 1
+
