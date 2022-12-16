@@ -34,12 +34,6 @@ func (d *DataStore) CreateTestDatabase(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer func(tx pgx.Tx, ctx context.Context) {
-		err := tx.Commit(ctx)
-		if err != nil {
-			log.Println("Error commiting: %s \n", err.Error())
-		}
-	}(tx, ctx)
 	databaseOptions := map[string]string{
 		"create_database": "CREATE DATABASE test_database",
 		"create_table": "CREATE TABLE test_database.test_table(" +
@@ -51,7 +45,7 @@ func (d *DataStore) CreateTestDatabase(ctx context.Context) error {
 	} else if _, err = tx.Exec(ctx, databaseOptions["create_table"]); err != nil {
 		return err
 	} else {
-		return nil
+		return tx.Commit(ctx)
 	}
 }
 
@@ -60,19 +54,14 @@ func (d *DataStore) InsertTestElement(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer func(tx pgx.Tx, ctx context.Context) {
-		err := tx.Commit(ctx)
-		if err != nil {
-			log.Printf("Error commiting insertion: %s \n", err.Error())
-		}
-	}(tx, ctx)
+
 	insertionString := fmt.Sprintf("INSERT INTO test_database.test_table(name) VALUES($1)")
 	if t, err := tx.Exec(ctx, insertionString, "Decker"); err != nil {
 		return err
 	} else if t.RowsAffected() == 0 {
 		return fmt.Errorf("Did not affect any rows")
 	} else {
-		return nil
+		return tx.Commit(ctx)
 	}
 }
 
@@ -93,8 +82,11 @@ func (d *DataStore) QueryTestElement(ctx context.Context) (string, error) {
 	}
 }
 
+const (
+	__port = 8000
+)
+
 var (
-	__port       = 8000
 	port         = fmt.Sprintf(":%d", __port)
 	database_url = "postgresql://root@cockroach:26257/defaultdb?sslmode=disable"
 	cockroachDB  *DataStore // make visible outside of init

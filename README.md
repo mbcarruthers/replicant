@@ -19,4 +19,4 @@ App exposes 2 simple endpoints available outside the container.
 2. localhost:8000/api/data
     - response with the single content-string of the temporary database, which is 'Decker'.
 
-And Will end with a graceful shutdown.
+And Will end with a graceful shutdown
